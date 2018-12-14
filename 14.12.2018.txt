@@ -1,24 +1,49 @@
 ﻿Regionlar üzrə işçilərin sayını göstərin (region, employee)
 
-select custom.regiondescription, count(custom.EmployeeID) as employees from (select distinct et.EmployeeID, r.regiondescription from region r join Territories t on r.RegionID=t.RegionID join EmployeeTerritories et on t.TerritoryID=et.TerritoryID) custom group by custom.regiondescription
+select custom.regiondescription, count(custom.EmployeeID) as employees 
+from (select distinct et.EmployeeID, r.regiondescription from region r join Territories t on r.RegionID=t.RegionID 
+join EmployeeTerritories et on t.TerritoryID=et.TerritoryID) custom 
+group by custom.regiondescription
 ------------------------------------------------------------------------------------------------------------------------------------------
 Məhsulları ən çox olan ilk 3 kateqoriyanı göstərin (categories, products)
 
-select top 3 categoryname, summ from Categories c join  (select sum(UnitsInStock) as summ, CategoryID  from Products group by CategoryID ) custom on c.CategoryID=custom.CategoryID order by summ desc
+select top 3 categoryname, summ 
+from Categories c 
+join  (select sum(UnitsInStock) as summ, CategoryID  from Products group by CategoryID ) custom on c.CategoryID=custom.CategoryID 
+order by summ desc
 ------------------------------------------------------------------------------------------------------------------------------------------
 Ən çox alver edən (məbləğ olaraq) 10 müştərini göstərin (customers, orders)
 
-select top 10 companyname, summm from (select sum(cOrder.summ) summm, customerid from (select orderid, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) summ from [Order Details] group by OrderID) cOrder join orders on corder.OrderID=orders.OrderID group by customerid) custom join Customers on custom.CustomerID=Customers.CustomerID order by summm desc
+select top 10 companyname, summm 
+from (select sum(cOrder.summ) summm, customerid 
+from (select orderid, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) summ 
+from [Order Details] group by OrderID) cOrder 
+join orders on corder.OrderID=orders.OrderID group by customerid) custom 
+join Customers on custom.CustomerID=Customers.CustomerID order by summm desc
 ------------------------------------------------------------------------------------------------------------------------------------------
 Ən çox satış edən 5 işçini və onların ünvanını göstərin (oders, employees, teritories, region)
 
 select firstname, lastname, address, city, summm  from employees 
- join (select top 5 sum(summ) summm, employeeid from
-(select orderid, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ from [Order Details] group by OrderID ) customorder
+join (select top 5 sum(summ) summm, employeeid from
+(select orderid, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ 
+from [Order Details] group by OrderID ) customorder
 join orders on customorder.orderid=orders.orderid group by EmployeeID order by summm desc) bests on Employees.EmployeeID=bests.EmployeeID
 ------------------------------------------------------------------------------------------------------------------------------------------
 Ən az satılan 10 məhsulu bazadan silin (əlaqələnməni nəzərə alaraq bu məhsul həmçinin orders-dən də silinməlidir)
 
+delete from orders where orderid in (select distinct orderid from [Order Details] od where od.ProductID in 
+(select od.ProductID from 
+	( select top 10  ProductID, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ 
+	from [Order Details]  group by ProductID order by summ) od));
 
+	delete from [Order Details]  where ProductID in 
+(select od.ProductID from 
+	( select top 10  ProductID, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ 
+	from [Order Details]  group by ProductID order by summ) od);
+
+	delete from Products where ProductID in 
+(select od.ProductID from 
+	( select top 10  ProductID, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ 
+	from [Order Details]  group by ProductID order by summ) od)
 ------------------------------------------------------------------------------------------------------------------------------------------
 Kargo şirkətlərinin gəlirlərini hesablayın (orders->freight)
