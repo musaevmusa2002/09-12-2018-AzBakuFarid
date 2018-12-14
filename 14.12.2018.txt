@@ -12,7 +12,10 @@ select top 10 companyname, summm from (select sum(cOrder.summ) summm, customerid
 ------------------------------------------------------------------------------------------------------------------------------------------
 Ən çox satış edən 5 işçini və onların ünvanını göstərin (oders, employees, teritories, region)
 
-
+select firstname, lastname, address, city, summm  from employees 
+ join (select top 5 sum(summ) summm, employeeid from
+(select orderid, floor(ROUND(sum((unitprice-unitprice*discount)*quantity), 0)) as summ from [Order Details] group by OrderID ) customorder
+join orders on customorder.orderid=orders.orderid group by EmployeeID order by summm desc) bests on Employees.EmployeeID=bests.EmployeeID
 ------------------------------------------------------------------------------------------------------------------------------------------
 Ən az satılan 10 məhsulu bazadan silin (əlaqələnməni nəzərə alaraq bu məhsul həmçinin orders-dən də silinməlidir)
 
